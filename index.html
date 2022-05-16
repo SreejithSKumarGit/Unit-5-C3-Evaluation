@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <style>
+        #navBar
+        {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            border: 1px solid black;
+            height: 60px;
+            border-radius: 5px;
+        }
+        #navBar > a
+        {
+            font-size: 30px;
+            text-decoration: none;
+        }
+        #container
+        {
+            display: grid;
+            grid-template-columns: repeat(1,1fr);
+            text-align: center;
+            margin-top: 20px;
+            gap: 10px;
+
+        }
+        #container >div
+        {
+            border: 2px solid black;
+            width: 50%;
+            margin: auto;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="navBar">
+        <a href="./index.html">Home</a>
+        <a href="./search.html">Search</a>
+    </div>
+    <div id="selectBar">
+        <label for="type">Select your prefered type</label>
+        <select name="type" id="selectBtn">
+            <option value="micro">Micro</option>
+            <option value="nano">Nano</option>
+            <option value="regional">Regional</option>
+            <option value="brewpub">Brewpub</option>
+            <option value="large">Large</option>
+            <option value="planning">Planning</option>
+            <option value="bar">Bar</option>
+            <option value="contract">Contract</option>
+            <option value="proprietor">Proprietor</option>
+            <option value="closed">Closed</option>
+        </select>
+    </div>
+    <div id="container">
+
+    </div>
+    <script>
+        getData();
+        async function getData()
+        {
+            try {
+                let res=await fetch(`https://api.openbrewerydb.org/breweries`);
+                let data=await res.json();
+                console.log()
+                displayData(data);
+            } catch (error) {
+                console.log("Error :" + error);
+            }
+        }
+        function displayData(data)
+        {   document.getElementById("container").innerHTML="";
+            data.forEach(element => {
+                let brewerieCard=document.createElement('div');
+                let brewerieName=document.createElement('h3');
+                brewerieName.textContent="Name : "+ element.name;
+                let brewerieType=document.createElement('h3');
+                brewerieType.textContent="Brewery Type: "+ element.brewery_type;
+                let brewerieCity=document.createElement('h3');
+                brewerieCity.textContent="City: "+ element.city;
+                let brewerieState=document.createElement('h3');
+                brewerieState.textContent="State : "+ element.state;
+                let detailsBtn=document.createElement('button');
+                detailsBtn.textContent="More Details";
+                detailsBtn.addEventListener('click',function()
+                {
+                    let brewerieId;
+                    if(localStorage.getItem('brewerieId')==null)
+                    {
+                        brewerieId=[];
+                        localStorage.setItem('brewerieId',JSON.stringify(brewerieId));
+                    }
+                    brewerieId=JSON.parse(localStorage.getItem('brewerieId'));
+                    brewerieId.push(element.id);
+                    localStorage.setItem('brewerieId',JSON.stringify(brewerieId));
+                    window.location.href="induvidual.html";
+                });
+                brewerieCard.append(brewerieName,brewerieType,brewerieCity,brewerieState,detailsBtn);
+                document.getElementById("container").append(brewerieCard);
+
+            });
+        }
+        document.getElementById("selectBtn").addEventListener('change',function()
+        {
+            getDataByType();
+        });
+        async function getDataByType()
+        {
+            try {
+                let selectInput=document.getElementById("selectBtn").value;
+                let res= await fetch(`https://api.openbrewerydb.org/breweries?by_type=${selectInput}`);
+                let data=await res.json();
+                displayData(data);
+            } catch (error) {
+                console.log("Error :" + error);
+            }
+        }
+
+    </script>
+</body>
+</html>

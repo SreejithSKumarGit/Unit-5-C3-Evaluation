@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+    <style>
+     #navBar
+        {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            border: 1px solid black;
+            height: 60px;
+            border-radius: 5px;
+        }
+    #navBar > a
+        {
+            font-size: 30px;
+            text-decoration: none;
+        }
+    #navBar > input
+    {
+        height: 30px;
+        align-self: center;
+        width: 50%;
+    }
+    #searchContainer 
+    {
+        display: grid;
+       
+        height: 200px;
+        overflow-y: scroll;
+        grid-template-columns: repeat(1,1fr);
+        text-align: center;
+    }
+    #searchContainer > div
+    {
+        width: 50%;
+        margin: auto;
+        border: 1px solid black;
+    }
+
+    #container
+        {
+            display: grid;
+            grid-template-columns: repeat(1,1fr);
+            text-align: center;
+            margin-top: 20px;
+            gap: 10px;
+
+        }
+        #container >div
+        {
+            border: 2px solid black;
+            width: 50%;
+            margin: auto;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="navBar">
+        <a href="./index.html">Home</a>
+        <input id="searchInput" type="text" oninput="debounce(searchData,1000)">
+        <a href="./search.html">Search</a>
+    </div>
+    <div id="searchContainer">
+
+    </div>
+    <div id="container">
+
+    </div>
+    <script>
+
+        async function searchData()
+        {
+            try {
+                let searchInput=document.getElementById("searchInput").value;
+                let res= await fetch(`https://api.openbrewerydb.org/breweries/search?query=${searchInput}`);
+                let data= await res.json();
+                displayData(data);
+            } catch (error) {
+                console.log("Error : "+ error);
+            }
+        }
+
+        function displayData(data)
+        { document.getElementById("searchContainer").style.display="block";
+            document.getElementById("searchContainer").innerHTML="";
+            
+            
+            data.forEach(element => {
+            let brewerieCard= document.createElement('div');
+            let brewerieName=document.createElement('h3');
+            brewerieName.textContent= element.name;
+            brewerieCard.append(brewerieName);
+            brewerieCard.addEventListener('click',function()
+            {
+            document.getElementById("container").innerHTML="";
+            document.getElementById("searchContainer").style.display="none";
+            let brewerieCard=document.createElement('div');
+                let brewerieName=document.createElement('h3');
+                brewerieName.textContent="Name : "+ element.name;
+                let brewerieType=document.createElement('h3');
+                brewerieType.textContent="Brewery Type: "+ element.brewery_type;
+                let brewerieCity=document.createElement('h3');
+                brewerieCity.textContent="City: "+ element.city;
+                let brewerieState=document.createElement('h3');
+                brewerieState.textContent="State : "+ element.state;
+                let detailsBtn=document.createElement('button');
+                detailsBtn.textContent="More Details";
+                detailsBtn.addEventListener('click',function()
+                {
+                    let brewerieId;
+                    if(localStorage.getItem('brewerieId')==null)
+                    {
+                        brewerieId=[];
+                        localStorage.setItem('brewerieId',JSON.stringify(brewerieId));
+                    }
+                    brewerieId=JSON.parse(localStorage.getItem('brewerieId'));
+                    brewerieId.push(element.id);
+                    localStorage.setItem('brewerieId',JSON.stringify(brewerieId));
+                    window.location.href="induvidual.html";
+                });
+                brewerieCard.append(brewerieName,brewerieType,brewerieCity,brewerieState,detailsBtn);
+                document.getElementById("container").append(brewerieCard);
+            });
+            document.getElementById("searchContainer").append(brewerieCard);  
+            });
+            
+        } 
+        let timerId;
+        function debounce(func,delay)
+        {
+            if(timerId)
+            {
+                clearTimeout(timerId);
+            }
+            timerId= setTimeout(function(){
+                func();
+            },delay);
+        }
+    </script>
+</body>
+</html>
